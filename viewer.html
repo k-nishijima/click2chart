@@ -1,74 +1,72 @@
 <html>
 <head>
-  <title></title>
+  <meta charset="UTF-8">
+  <title>click2chart viewer</title>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
   <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
   <script src="http://ccchart.com/js/ccchart.js" charset="utf-8"></script>
   <script src="vertxbus.js"></script>
+  <script src="data.js"></script>
 </head>
 <body>
 
+<div id="questions">
+  <form>
+	<select id="qSelect">
+	</select>
+  </form>
+</div>
+
+<h1 id="current"></h1>
+
 <canvas id="pieChart"></canvas>
+
+<div id="status">
+  Connection Status:&nbsp;
+  <span id="status_info">Not connected</span>
+</div>
+
 <script>
-var chartdata79 = {
-
-  "config": {
-    "title": "pie Chart",
-    "type": "pie",
-    "useVal": "yes",
-    "pieDataIndex": 2,
-    "colNameFont": "100 18px 'Arial'",
-    "pieRingWidth": 80,
-    "pieHoleRadius": 40,
-    "textColor": "#888",
-    "bg": "#fff"
-  },
-
-  "data": [
-    ["年度",2007],
-    ["紅茶",335],
-    ["コーヒー",400],
-    ["ジュース",160],
-    ["ウーロン",100]
-  ]
-};
-
-ccchart.init('pieChart', chartdata79);
-
-
   var eb = null;
 
-  function publish(address,  message) {
-    if (eb) {
-      var json = {text: message};
-      eb.publish(address, json);
-      $('#sent').append($("<code>").text("Address:" + address + " Message:" + message));
-      $('#sent').append($("</code><br>"));
-    }
-  }
 
   function subscribe(address) {
     if (eb) {
       eb.registerHandler(address, function(msg, replyTo) {
-        $('#received').append("Address:" + address + " Message:" + msg.text + "<br>");
-      });
-      $('#subscribed').append($("<code>").text("Address:" + address));
-      $('#subscribed').append($("</code><br>"));
-    }
-  }
+console.log(msg);
+        var data = new Array();
+        for (var key in msg) {
+          data.push(new Array(key, msg[key]));
+        }
 
-  function closeConn() {
-    if (eb) {
-      eb.close();
-    }
+        var chart = {
+          "config": {
+            "title": "回答",
+            "type": "pie",
+            "useVal": "yes",
+            "pieDataIndex": 2,
+            "colNameFont": "100 18px 'Arial'",
+            "pieRingWidth": 80,
+            "pieHoleRadius": 40,
+            "textColor": "#888",
+            "bg": "#fff"
+          },
+
+          "data": data
+        };
+        ccchart.init('pieChart', chart);
+
+      });
+	}
   }
 
   function openConn() {
     if (!eb) {
-      eb = new vertx.EventBus("http://localhost:8080/eventbus");
+      eb = new vertx.EventBus(APP_EB_URL);
 
       eb.onopen = function() {
         $("#status_info").text("Connected");
+        subscribe(ADDR_Q);
       };
 
       eb.onclose = function() {
@@ -79,21 +77,21 @@ ccchart.init('pieChart', chartdata79);
   }
 
   $(document).ready(function() {
-    $("#sendButton").click(function() {
-      publish($("#sendAddress").val(), $("#sendMessage").val());
-    });
 
-    $("#subscribeButton").click(function() {
-      subscribe($("#subscribeAddress").val());
-    });
+    for (i=0; i<data.questions.length; i++) {
+      var q = data.questions[i];
+      $('#qSelect').append($('<option>').html(q.txt).val(q.id));
+    }
 
-    $("#closeButton").click(function() {
-      closeConn();
-    });
+    $("#qSelect").change(function() {
+      $("#current").text($("#qSelect option:selected").text());
+      $("#qId").val($("#qSelect option:selected").val());
 
-    $("#connectButton").click(function() {
-      openConn();
+      subscribe(ADDR_RESULT + $("#qSelect option:selected").val());
     });
+    $('#qSelect').trigger('change');
+
+    openConn();
   });
 
 </script>

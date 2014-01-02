@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+def eb = vertx.eventBus
+
+eb.registerHandler("vote") { 
+  message -> println "I received a message ${message.body}"
+
+  eb.send("result1", ["回答1": 123, "回答2": 234])
+}
+
 def server = vertx.createHttpServer()
 
 // Serve the static resources
