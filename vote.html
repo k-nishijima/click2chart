@@ -1,0 +1,107 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>click2chart vote</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+  <script src="vertxbus.js"></script>
+</head>
+
+<body>
+
+
+
+<div id="status">
+  Connection Status:&nbsp;
+  <div id="status_info">Not connected</div>
+</div>
+
+
+<div id="questions">
+  <form >
+	<select id="qSelect">
+	</select>
+  </form>
+</div>
+
+<h1 id="current"></h1>
+
+<div id="vote">
+  <form>
+    <input type="hidden" id="qId" />
+	<input type="button" onClick="vote(1)" value="1"/>
+	<input type="button" id="v2" value="2"/>
+	<input type="button" id="v3" value="3"/>
+	<input type="button" id="v4" value="4"/>
+	<input type="button" id="v5" value="5"/>
+	<input type="button" id="v6" value="6"/>
+  </form>
+</div>
+
+
+<script>
+  var data = {
+	"questions": [
+		{"id": 1, "txt":"質問1：ああああ"},
+		{"id": 2, "txt":"質問2：222ああああ"},
+		{"id": 3, "txt":"質問3：333ああああ"}
+	]
+  };
+
+  var ADDR_Q = 'questions';
+  var ADDR_VOTE = 'vote';
+  var eb = null;
+
+  function publish(address,  message) {
+    if (eb) {
+      var json = {text: message};
+      eb.publish(address, json);
+      $('#sent').append($("<code>").text("Address:" + address + " Message:" + message));
+      $('#sent').append($("</code><br>"));
+    }
+  }
+
+  function subscribe(address) {
+    if (eb) {
+      eb.registerHandler(address, function(msg, replyTo) {
+        $('#qTitle').append($('<option>').html(msg.text).val(msg.id));
+        $('#qId').val(msg.id);
+      });
+	}
+  }
+
+  function openConn() {
+    if (!eb) {
+      eb = new vertx.EventBus(APP_EB_URL);
+
+      eb.onopen = function() {
+        $("#status_info").text("Connected");
+        subscribe(ADDR_Q);
+      };
+
+      eb.onclose = function() {
+        $("#status_info").text("Not connected");
+        eb = null;
+      };
+    }
+  }
+
+  $(document).ready(function() {
+    for (i=0; i<data.questions.length; i++) {
+      var q = data.questions[i];
+      $('#qSelect').append($('<option>').html(q.txt).val(q.id));
+    }
+
+    $("#qSelect").change(function() {
+      $("#current").text($("#qSelect option:selected").text());
+      $("#qId").val($("#qSelect option:selected").val());
+    });
+    $('#qSelect').trigger('change');
+
+    openConn();
+  });
+
+</script>
+
+</body>
+</html>

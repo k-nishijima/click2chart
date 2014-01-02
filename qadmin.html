@@ -1,0 +1,79 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>click2chart 質問管理</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+  <script src="vertxbus.js"></script>
+</head>
+
+<body>
+
+<div id="status">
+  Connection Status:&nbsp;
+  <div id="status_info">Not connected</div>
+</div>
+<hr>
+
+<div>
+
+  <form onsubmit="return false;">
+    質問ID:<input type="text" id="id" value="1"/><br>
+    質問本文:<input type="text" id="msg" value=""/>
+    <input type="button" id="sendButton" value="質問追加"/>
+  </form>
+
+  <div id="sent" class="innerbox" style="width: 400px; height: 205px;">
+  </div>
+</div>
+
+<script>
+
+  var eb = null;
+
+  function publish(address, id, message) {
+    if (eb) {
+      var json = {text: message, id: id};
+      eb.publish(address, json);
+      $('#sent').append($("<code>").text("Address:" + address + " Message:" + message));
+      $('#sent').append($("</code><br>"));
+    }
+  }
+
+  function closeConn() {
+    if (eb) {
+      eb.close();
+    }
+  }
+
+  function openConn() {
+    if (!eb) {
+      eb = new vertx.EventBus(APP_EB_URL);
+
+      eb.onopen = function() {
+        $("#status_info").text("Connected");
+      };
+
+      eb.onclose = function() {
+        $("#status_info").text("Not connected");
+        eb = null;
+      };
+    }
+  }
+
+  $(document).ready(function() {
+    $("#sendButton").click(function() {
+      publish('questions', $("#id").val(), $("#msg").val());
+
+      $('#sent').append($("<code>").text("id:" + $("#id").val() + " Message:" + $("#msg").val()));
+      $('#sent').append($("</code><br>"));
+    });
+
+    openConn();
+
+  });
+
+</script>
+
+</body>
+</html>
