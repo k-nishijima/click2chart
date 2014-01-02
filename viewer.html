@@ -1,11 +1,19 @@
-<script src="http://ccchart.com/js/ccchart.js" charset="utf-8"></script>
-<canvas id="hoge"></canvas>
+<html>
+<head>
+  <title></title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+  <script src="http://ccchart.com/js/ccchart.js" charset="utf-8"></script>
+  <script src="vertxbus.js"></script>
+</head>
+<body>
+
+<canvas id="pieChart"></canvas>
 <script>
 var chartdata79 = {
 
   "config": {
     "title": "pie Chart",
-    "subTitle": "円(ドーナツ)チャート",
     "type": "pie",
     "useVal": "yes",
     "pieDataIndex": 2,
@@ -17,14 +25,78 @@ var chartdata79 = {
   },
 
   "data": [
-    ["年度",2007,2008,2009,2010,2011,2012,2013],
-    ["紅茶",335,352,527,448,775,835,979],
-    ["コーヒー",400,385,436,373,357,688,800],
-    ["ジュース",160,252,588,252,567,502,660],
-    ["ウーロン",100,183,352,120,302,400,1112]
+    ["年度",2007],
+    ["紅茶",335],
+    ["コーヒー",400],
+    ["ジュース",160],
+    ["ウーロン",100]
   ]
 };
 
-ccchart.init('hoge', chartdata79);
+ccchart.init('pieChart', chartdata79);
+
+
+  var eb = null;
+
+  function publish(address,  message) {
+    if (eb) {
+      var json = {text: message};
+      eb.publish(address, json);
+      $('#sent').append($("<code>").text("Address:" + address + " Message:" + message));
+      $('#sent').append($("</code><br>"));
+    }
+  }
+
+  function subscribe(address) {
+    if (eb) {
+      eb.registerHandler(address, function(msg, replyTo) {
+        $('#received').append("Address:" + address + " Message:" + msg.text + "<br>");
+      });
+      $('#subscribed').append($("<code>").text("Address:" + address));
+      $('#subscribed').append($("</code><br>"));
+    }
+  }
+
+  function closeConn() {
+    if (eb) {
+      eb.close();
+    }
+  }
+
+  function openConn() {
+    if (!eb) {
+      eb = new vertx.EventBus("http://localhost:8080/eventbus");
+
+      eb.onopen = function() {
+        $("#status_info").text("Connected");
+      };
+
+      eb.onclose = function() {
+        $("#status_info").text("Not connected");
+        eb = null;
+      };
+    }
+  }
+
+  $(document).ready(function() {
+    $("#sendButton").click(function() {
+      publish($("#sendAddress").val(), $("#sendMessage").val());
+    });
+
+    $("#subscribeButton").click(function() {
+      subscribe($("#subscribeAddress").val());
+    });
+
+    $("#closeButton").click(function() {
+      closeConn();
+    });
+
+    $("#connectButton").click(function() {
+      openConn();
+    });
+  });
 
 </script>
+
+</body>
+</html>

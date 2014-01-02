@@ -13,12 +13,12 @@
 
 <div id="status">
   Connection Status:&nbsp;
-  <div id="status_info">Not connected</div>
+  <span id="status_info">Not connected</span>
 </div>
 
 
 <div id="questions">
-  <form >
+  <form>
 	<select id="qSelect">
 	</select>
   </form>
@@ -30,14 +30,18 @@
   <form>
     <input type="hidden" id="qId" />
 	<input type="button" onClick="vote(1)" value="1"/>
-	<input type="button" id="v2" value="2"/>
-	<input type="button" id="v3" value="3"/>
-	<input type="button" id="v4" value="4"/>
-	<input type="button" id="v5" value="5"/>
-	<input type="button" id="v6" value="6"/>
+	<input type="button" onClick="vote(2)" value="2"/>
+	<input type="button" onClick="vote(3)" value="3"/>
+	<input type="button" onClick="vote(4)" value="4"/>
   </form>
 </div>
 
+<div id="send">
+  回答:<br>
+
+  <div id="sent" class="innerbox" style="width: 400px; height: 205px;">
+  </div>
+</div>
 
 <script>
   var data = {
@@ -51,6 +55,16 @@
   var ADDR_Q = 'questions';
   var ADDR_VOTE = 'vote';
   var eb = null;
+
+  function vote(answer) {
+    if (eb) {
+      var json = {vote: answer};
+      eb.publish(ADDR_VOTE + $("#qId").val(), json);
+
+      $('#sent').append($("<code>").text($("#current").text() + " | 回答:" + answer));
+      $('#sent').append($("</code><br>"));
+    }
+  }
 
   function publish(address,  message) {
     if (eb) {
