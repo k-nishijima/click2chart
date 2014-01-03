@@ -15,6 +15,7 @@
 	<select id="qSelect">
 	  <option>select question</option>
 	</select>
+	<input type="button" onClick="allReset()" value="回答リセット"/>
   </form>
 </div>
 
@@ -33,6 +34,11 @@
   function subscribe(address) {
     if (eb) {
       eb.registerHandler(address, function(msg, replyTo) {
+        if (msg["reset"] == "empty") {
+          resetChart();
+          return;
+        }
+
         var json = JSON.parse(msg);
         var chartData = new Array();
         chartData.push(new Array("", ""));
@@ -51,6 +57,7 @@
             "pieRingWidth": 80,
             "pieHoleRadius": 40,
             "textColor": "#000",
+            "useShadow": "no",
             "bg": "#fff"
           },
 
@@ -60,6 +67,17 @@
 
       });
 	}
+  }
+
+  function allReset() {
+    if (eb) {
+      var json = {q:$("#qSelect option:selected").val()};
+      eb.send(ADDR_RESET, json);
+    }
+  }
+
+  function resetChart() {
+    ccchart.init('pieChart', {"config": {"type": "pie", "bg": "#fff"}});
   }
 
   function openConn() {
@@ -87,7 +105,7 @@
       $("#current").text($("#qSelect option:selected").text());
 
       subscribe(ADDR_RESULT + $("#qSelect option:selected").val());
-      ccchart.init('pieChart', {"config": {"type": "pie", "bg": "#fff"}});
+      resetChart();
     });
 
     openConn();

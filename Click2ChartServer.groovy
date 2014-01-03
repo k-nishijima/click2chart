@@ -17,8 +17,6 @@
 def eb = vertx.eventBus
 
 eb.registerHandler("vote") { message -> 
-  //println "I received a message ${message.body}"
-
   def resultKey = 'result' + message.body.q
   def map = vertx.sharedData.getMap(resultKey)
 
@@ -40,14 +38,24 @@ eb.registerHandler("vote") { message ->
   eb.send(resultKey, json.toString())
 }
 
+eb.registerHandler("reset") { message -> 
+  def resultKey = 'result' + message.body.q
+  def map = vertx.sharedData.getMap(resultKey)
+  map.clear()
+  eb.send(resultKey, ["reset":"empty"])
+  println "reset "+ resultKey
+}
+
+
 def server = vertx.createHttpServer()
 
 // Serve the static resources
 server.requestHandler { req ->
   if (req.uri == '/') req.response.sendFile('vote.html')
-  if (req.uri == '/result') req.response.sendFile('result.html')
+  if (req.uri == '/view') req.response.sendFile('viewer.html')
 }
 
 vertx.createSockJSServer(server).bridge(prefix: '/eventbus', [[:]], [[:]])
 
 server.listen(8080)
+println "SockJSServer startup."

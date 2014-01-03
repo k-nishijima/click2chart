@@ -29,3 +29,4 @@
   var ADDR_Q = 'questions';
   var ADDR_VOTE = 'vote';
   var ADDR_RESULT = 'result';
+  var ADDR_RESET = 'reset';
