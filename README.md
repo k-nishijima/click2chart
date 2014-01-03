@@ -14,6 +14,8 @@
     $ curl -s api.gvmtool.net | bash
 	$ gvm install vertx
 
+(Java7が入っていない人はついでに sudo apt-get install openjdk-7-jdk してください)
+
 ## Configuring
 
 data.jsファイルを編集し、設問や回答を設定します。
