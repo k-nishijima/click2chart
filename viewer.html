@@ -4,7 +4,7 @@
   <title>click2chart viewer</title>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
   <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
-  <script src="http://ccchart.com/js/ccchart.js" charset="utf-8"></script>
+  <script src="ccchart.js" charset="utf-8"></script>
   <script src="vertxbus.js"></script>
   <script src="data.js"></script>
 </head>
@@ -13,6 +13,7 @@
 <div id="questions">
   <form>
 	<select id="qSelect">
+	  <option>select question</option>
 	</select>
   </form>
 </div>
@@ -32,25 +33,28 @@
   function subscribe(address) {
     if (eb) {
       eb.registerHandler(address, function(msg, replyTo) {
-        var data = new Array();
-        for (var key in msg) {
-          data.push(new Array(key, msg[key]));
+        var json = JSON.parse(msg);
+        var chartData = new Array();
+        chartData.push(new Array("", ""));
+        for (var key in json) {
+          chartData.push(new Array(data["answer"+ $("#qSelect option:selected").val()][key], json[key]));
         }
 
         var chart = {
           "config": {
-            "title": "回答",
+            "title": "",
             "type": "pie",
             "useVal": "yes",
-            "pieDataIndex": 2,
-            "colNameFont": "100 18px 'Arial'",
+            "useFirstToColName": false,
+            "useFirstToRowName": false,
+            "colNameFont": "100 24px 'Arial'",
             "pieRingWidth": 80,
             "pieHoleRadius": 40,
-            "textColor": "#888",
+            "textColor": "#000",
             "bg": "#fff"
           },
 
-          "data": data
+          "data": chartData
         };
         ccchart.init('pieChart', chart);
 
@@ -64,7 +68,6 @@
 
       eb.onopen = function() {
         $("#status_info").text("Connected");
-        subscribe(ADDR_Q);
       };
 
       eb.onclose = function() {
@@ -75,7 +78,6 @@
   }
 
   $(document).ready(function() {
-
     for (i=0; i<data.questions.length; i++) {
       var q = data.questions[i];
       $('#qSelect').append($('<option>').html(q.txt).val(q.id));
@@ -83,11 +85,10 @@
 
     $("#qSelect").change(function() {
       $("#current").text($("#qSelect option:selected").text());
-      $("#qId").val($("#qSelect option:selected").val());
 
       subscribe(ADDR_RESULT + $("#qSelect option:selected").val());
+      ccchart.init('pieChart', {"config": {"type": "pie", "bg": "#fff"}});
     });
-    $('#qSelect').trigger('change');
 
     openConn();
   });

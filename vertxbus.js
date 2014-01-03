@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-var APP_EB_URL = 'http://localhost:8080/eventbus';
 var vertx = vertx || {};
 
 !function(factory) {

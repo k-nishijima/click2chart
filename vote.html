@@ -27,6 +27,11 @@
 
 <h1 id="current"></h1>
 
+<div>
+    <ol id="answer">
+	</ol>
+</div>
+
 <div id="vote">
   <form>
     <input type="hidden" id="qId" />
@@ -38,7 +43,7 @@
 </div>
 
 <div id="send">
-  回答:<br>
+  回答履歴:<br>
 
   <div id="sent" class="innerbox" style="width: 400px; height: 205px;">
   </div>
@@ -52,7 +57,7 @@
       var json = {q:$('#qId').val(), vote: answer};
       eb.send(ADDR_VOTE, json);
 
-      $('#sent').append($("<code>").text($("#current").text() + " | 回答:" + answer));
+      $('#sent').append($("<code>").text($("#current").text() + " | 回答:" + data["answer"+ $('#qId').val()]["vote"+ answer]));
       $('#sent').append($("</code><br>"));
     }
   }
@@ -99,8 +104,16 @@
     }
 
     $("#qSelect").change(function() {
+      var pk = $("#qSelect option:selected").val()
       $("#current").text($("#qSelect option:selected").text());
-      $("#qId").val($("#qSelect option:selected").val());
+      $("#qId").val(pk);
+
+      $('#answer').empty();
+      for (var key in data["answer"+ pk]) {
+        $('#answer').append($('<li>').html(data["answer"+ pk][key]));
+      }
+
+
     });
     $('#qSelect').trigger('change');
   });
