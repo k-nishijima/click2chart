@@ -16,10 +16,28 @@
 
 def eb = vertx.eventBus
 
-eb.registerHandler("vote") { 
-  message -> println "I received a message ${message.body}"
+eb.registerHandler("vote") { message -> 
+  //println "I received a message ${message.body}"
 
-  eb.send("result1", ["回答1": 123, "回答2": 234])
+  def resultKey = 'result' + message.body.q
+  def map = vertx.sharedData.getMap(resultKey)
+
+  def voteKey = "vote"+ message.body.vote
+  if (map.containsKey(voteKey)) { 
+	map[voteKey]++
+  } else { 
+	map[voteKey] = 1
+  }
+
+  def json = new groovy.json.JsonBuilder()
+  json {
+	map.collect { i ->
+	  "${i.key}" "${i.value}"
+	}
+  }
+
+  println json.toString()
+  eb.send(resultKey, json.toString())
 }
 
 def server = vertx.createHttpServer()
@@ -28,7 +46,6 @@ def server = vertx.createHttpServer()
 server.requestHandler { req ->
   if (req.uri == '/') req.response.sendFile('vote.html')
   if (req.uri == '/result') req.response.sendFile('result.html')
-  //  if (req.uri == '/vertxbus.js') req.response.sendFile('eventbusbridge/vertxbus.js')
 }
 
 vertx.createSockJSServer(server).bridge(prefix: '/eventbus', [[:]], [[:]])

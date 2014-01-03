@@ -50,7 +50,7 @@
   function vote(answer) {
     if (eb) {
       var json = {q:$('#qId').val(), vote: answer};
-      eb.publish(ADDR_VOTE, json);
+      eb.send(ADDR_VOTE, json);
 
       $('#sent').append($("<code>").text($("#current").text() + " | 回答:" + answer));
       $('#sent').append($("</code><br>"));

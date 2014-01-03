@@ -29,11 +29,9 @@
 <script>
   var eb = null;
 
-
   function subscribe(address) {
     if (eb) {
       eb.registerHandler(address, function(msg, replyTo) {
-console.log(msg);
         var data = new Array();
         for (var key in msg) {
           data.push(new Array(key, msg[key]));
