@@ -49,10 +49,12 @@ eb.registerHandler("reset") { message ->
 
 def server = vertx.createHttpServer()
 
-// Serve the static resources
 server.requestHandler { req ->
   if (req.uri == '/') req.response.sendFile('vote.html')
   if (req.uri == '/view') req.response.sendFile('viewer.html')
+  if (req.uri == '/ccchart.js') req.response.sendFile('ccchart.js')
+  if (req.uri == '/data.js') req.response.sendFile('data.js')
+  if (req.uri == '/vertxbus.js') req.response.sendFile('vertxbus.js')
 }
 
 vertx.createSockJSServer(server).bridge(prefix: '/eventbus', [[:]], [[:]])
